@@ -1,0 +1,1908 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>apex</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;border:0;border-radius:0;box-shadow:none;outline:0}
+[hidden]{display:none!important}
+body{padding:2px 2px 40px;background:#fff;color:#000;font:12px/1.2 monospace;overflow-x:hidden}
+button,select,input,textarea{font:inherit;color:#000;background:#fff;border:1px solid #000;min-width:0;height:24px;padding:1px 3px;flex:1 1 auto}
+button{user-select:none;font-weight:700;text-align:center;cursor:pointer}
+button:active{background:#000;color:#fff}
+textarea{min-height:24px;resize:vertical;white-space:pre-wrap;word-break:break-word}
+header,footer,aside,#tools,#box-form,#box-dash,#box-nota,#box-map,#tail,#msg{display:flex;flex-wrap:wrap;gap:2px;width:100%}
+header{position:sticky;top:0;z-index:20;background:#fff;padding-bottom:2px}
+#tools{position:sticky;top:26px;z-index:19;background:#fff;padding-bottom:2px}
+#q{flex:4 1 100px;font-weight:700}
+#msg{justify-content:space-between;align-items:center}
+#msg button{flex:0 0 auto;height:24px;padding:0 6px}
+aside{display:none}
+aside button{flex:1 1 calc(20% - 2px);min-width:calc(20% - 2px);text-align:left}
+#box-form>*{flex:1 1 min(100%,140px);min-width:min(100%,140px);max-width:100%}
+#box-dash>button{flex:1 1 min(100%,120px);min-width:min(100%,120px);height:auto;min-height:36px;padding:2px;text-align:left;display:flex;flex-direction:column;justify-content:center}
+#box-dash>button span{font-size:10px}
+#box-dash>button b{font-size:12px}
+#list{display:flex;flex-direction:column;gap:1px;width:100%;margin-top:2px}
+#list>div{padding:2px 0;word-break:break-word;width:100%;cursor:pointer}
+body[data-v="grid"] #list{flex-direction:row;flex-wrap:wrap;gap:2px}
+body[data-v="grid"] #list>div{flex:1 1 min(100%,130px);min-width:min(100%,130px);padding:2px;display:flex;flex-direction:column}
+body[data-v="grid"] #list img{width:100%;height:75px;object-fit:cover;display:block;margin-bottom:2px}
+#box-form,#box-dash,#box-nota,#box-map{display:none}
+#box-nota{flex-direction:column;align-items:flex-start}
+#box-map{flex-direction:column;align-items:flex-start;gap:2px}
+#tape{width:100%;max-width:280px;background:#fff;color:#000;font:11px/1.2 monospace;white-space:pre-wrap;word-break:break-word}
+footer{position:fixed;bottom:0;left:0;width:100%;z-index:30;background:#fff;padding:2px}
+footer button{flex:1 1 auto;min-width:calc(20% - 2px);height:24px}
+#tail button{flex:1 1 100%;height:24px}
+body[data-m="menu"] aside{display:flex!important}
+body[data-m="menu"] :is(main,footer,#msg){display:none!important}
+body[data-m="menu"] header>:not([data-a="menu"],[data-a="clr"],#q){display:none!important}
+body:not([data-m="list"]) header [data-a="add"]{display:none!important}
+body[data-noadd="1"] header [data-a="add"]{display:none!important}
+body[data-m="form"] :is(header,#tools,#list,#tail,aside){display:none!important}
+body[data-m="form"] #box-form{display:flex!important}
+body[data-m="dash"] :is(#tools,#list,#tail,aside){display:none!important}
+body[data-m="dash"] #box-dash{display:flex!important}
+body[data-m="nota"] :is(header,#tools,#list,#tail,aside){display:none!important}
+body[data-m="nota"] #box-nota{display:flex!important}
+body[data-m="map"] :is(header [data-a="add"],#tools,#list,#tail,aside){display:none!important}
+body[data-m="map"] #box-map{display:flex!important}
+@media print{
+  body{padding:0!important;background:#fff!important}
+  header,footer,aside,#tools,#msg,#tail,#box-dash,#list{display:none!important}
+  body[data-m="nota"] #box-nota{display:block!important}
+  body[data-m="nota"] #tape{width:58mm!important;font:11px monospace!important}
+}
+</style>
+</head>
+<body data-m="form" data-v="list">
+
+<header id="h">
+  <button data-a="menu">menu</button>
+  <input id="q" data-a="q" placeholder="q" autocomplete="off" spellcheck="false">
+  <button data-a="clr">clr</button>
+  <button data-a="add">add</button>
+</header>
+
+<div id="msg" hidden></div>
+
+<aside id="sb">
+  <button data-a="v-dash">dashboard</button>
+  <button data-a="v-map-kontak">map kontak</button>
+  <button data-a="v-map-jual">map penjualan</button>
+  <button data-a="v-toko">toko</button>
+  <button data-a="v-conn">koneksi</button>
+  <button data-a="push">push</button>
+  <button data-a="pull">pull</button>
+  <button data-a="backup">backup</button>
+  <button data-a="logout">logout</button>
+</aside>
+
+<main id="main">
+  <div id="tools">
+    <select id="sh-sel" data-a="sh-sel"></select>
+    <select id="st-sel" data-a="st-sel"></select>
+    <button data-a="dir" style="flex:0 0 24px">^</button>
+    <button data-a="grid" style="flex:0 0 24px">#</button>
+    <select id="act-sel" data-a="act-sel">
+      <option value="" disabled selected>act</option>
+      <option value="edit">edit</option>
+      <option value="bulksheet">bulksheet</option>
+      <option value="schema">schema</option>
+      <option value="clear">clear</option>
+      <option value="imp">imp</option>
+      <option value="tsv">tsv</option>
+    </select>
+  </div>
+  <div id="box-form"></div>
+  <div id="box-dash"></div>
+  <div id="box-nota"><pre id="tape"></pre></div>
+  <div id="box-map"></div>
+  <div id="list"></div>
+  <div id="tail"></div>
+</main>
+
+<footer id="ft"></footer>
+<input id="f" type="file" data-a="f" accept=".tsv" hidden>
+<input id="f-cam" type="file" accept="image/*" capture="environment" hidden>
+<input id="f-img" type="file" accept="image/*" hidden>
+
+<script>
+'use strict';
+/*SEED*/
+const HARD = {
+  store: {
+    name: 'TB. AIZA CIRUJI',
+    sub: 'Sembako Percetakan Material',
+    phone: '08787 117 6447 / 0838 7113 5994',
+    bank: 'BRI: 0166 0113 7004 507 (Leni)',
+    footer: 'TERIMA KASIH!'
+  },
+  shs: ['penjualan','produk_jual','produk','pembelian','produk_beli','kas','kontak','cicil','ecer','users','roles','cms','absen'],
+  cols: {
+    penjualan: ['idjual','user','date','bayar','catatan','diskon','kontak','lokasi','foto','status'],
+    produk_jual: ['idprodukjual','idpenjualan','idproduk','namaproduk','hargabeli','hargajual','qty','diskon','catatan'],
+    produk: ['idproduk','subkategori','kategori','namaproduk','hargabeli','hargajual','stok','foto_url'],
+    pembelian: ['idbeli','user','date','bayar','catatan','kontak','lokasi','foto','status'],
+    produk_beli: ['idprodukbeli','idpembelian','idproduk','namaproduk','hargabeli','hargajual','qty'],
+    kas: ['idkas','user','date','kategori','masuk','keluar','uraian','lokasi','foto'],
+    kontak: ['idkontak','user','kategori','nama','alamat','hp','lokasi','foto'],
+    cicil: ['idcicil','idjual','user','date','jumlah','catatan','kontak'],
+    ecer: ['idecer','date','user','idproduk','namaproduk','hargabeli','hargajual','qty','diskon','catatan'],
+    users: ['user','password','role'],
+    roles: ['role','deskripsi','akses'],
+    cms: ['idcms','date','user','judul','kategori','konten','foto'],
+    absen: ['idabsen','user','date','tipe','jam','lokasi','foto','catatan']
+  },
+  vis: {
+    penjualan: ['idjual','date','bayar','kontak','status'],
+    produk_jual: ['idpenjualan','namaproduk','qty','hargajual'],
+    produk: ['subkategori','kategori','namaproduk','hargajual','stok'],
+    pembelian: ['idbeli','date','bayar','kontak','status'],
+    produk_beli: ['idpembelian','namaproduk','qty','hargabeli'],
+    kas: ['date','kategori','masuk','keluar','uraian'],
+    kontak: ['nama','kategori','hp','lokasi'],
+    cicil: ['idjual','date','jumlah','kontak'],
+    ecer: ['namaproduk','qty','hargajual'],
+    users: ['user','role'],
+    roles: ['role','deskripsi'],
+    cms: ['date','judul','kategori'],
+    absen: ['user','date','tipe','jam']
+  },
+  db: {
+    penjualan: [['aaa18006446','admin','2026-10-03','100000','diambil ke toko','4000','aan h. udin picung','-6.2088,106.8456','','piutang']],
+    produk_jual: [
+      ['PJL001','aaa18006446','P001','lakban gipsum 1','10000','15000','3','1000',''],
+      ['PJL002','aaa18006446','P002','led cahaya 12','25000','35000','6','0','']
+    ],
+    produk: [
+      ['P001','Material','Gipsum','lakban gipsum 1','10000','15000','50',''],
+      ['P002','Listrik','Lampu','led cahaya 12','25000','35000','40',''],
+      ['P003','Material','Semen','semen instan 40kg','45000','55000','20','']
+    ],
+    pembelian: [], produk_beli: [],
+    kas: [['KAS01','admin','2026-10-03','Operasional','0','25000','beli bensin operasional','-6.2088,106.8456','']],
+    kontak: [['K001','admin','Pelanggan','aan h. udin picung','picung','+6285724511555','-6.2088,106.8456','']],
+    cicil: [], ecer: [], users: [['admin','admin','admin']],
+    roles: [['admin','super user','all'],['user','staff kasir','trx,kas']],
+    cms: [['C001','2026-10-03','admin','Info Toko','Umum','Buka setiap hari 07:00 - 17:00 WIB','']],
+    absen: [['A001','admin','2026-10-03','masuk','07:00','-6.2088,106.8456','','ontime']]
+  }
+};
+/*ENDSEED*/
+
+const STORE_KEY = 'apex';
+const S = {
+  u: '', cur: 'penjualan', v: 'dash', idx: null, page: 1, sort: 0, dir: 1, grid: false,
+  conf: null, prefill: null, parent: null, receiptRaw: '', prodIdx: null, readyOnly: false,
+  mapType: 'kontak', mapLoc: '', mapLimit: 20, myLoc: null,
+  df: { u: '', from: '', to: '', kat: '' },
+  sid: '', appurl: '', d1url: '', store: { ...HARD.store },
+  shs: [...HARD.shs], cols: JSON.parse(JSON.stringify(HARD.cols)),
+  vis: JSON.parse(JSON.stringify(HARD.vis)), fvis: {}, db: JSON.parse(JSON.stringify(HARD.db))
+};
+
+const dom = {
+  q: document.getElementById('q'), msg: document.getElementById('msg'), sb: document.getElementById('sb'),
+  f: document.getElementById('f'), fCam: document.getElementById('f-cam'), fImg: document.getElementById('f-img'),
+  sh: document.getElementById('sh-sel'), st: document.getElementById('st-sel'), act: document.getElementById('act-sel'),
+  fb: document.getElementById('box-form'), db: document.getElementById('box-dash'), ls: document.getElementById('list'),
+  mb: document.getElementById('box-map'), tl: document.getElementById('tail'), ft: document.getElementById('ft'),
+  tape: document.getElementById('tape')
+};
+
+const cols = () => S.cols[S.cur] || ['id','col1'];
+const vis = () => (S.vis[S.cur] || cols()).filter(c => cols().includes(c));
+const fvis = () => (S.fvis?.[S.cur]?.length ? S.fvis[S.cur] : cols()).filter(c => cols().includes(c));
+const isTrx = () => S.cur === 'penjualan' || S.cur === 'pembelian';
+const childOf = sh => sh === 'penjualan' ? 'produk_jual' : (sh === 'pembelian' ? 'produk_beli' : null);
+const parentOf = sh => sh === 'produk_jual' ? 'penjualan' : (sh === 'produk_beli' ? 'pembelian' : null);
+const fkCol = sh => sh === 'produk_jual' ? 'idpenjualan' : (sh === 'produk_beli' ? 'idpembelian' : null);
+const NO_ADD = ['penjualan','pembelian','produk_jual','produk_beli','cicil','ecer'];
+
+const genId = () => {
+  const d = new Date();
+  return String(d.getHours()).padStart(2, '0') + String(d.getMinutes()).padStart(2, '0') + Math.random().toString(36).slice(2, 5).padEnd(3, '0');
+};
+const fmtNum = n => (parseFloat(n) || 0).toLocaleString('id-ID');
+const today = () => new Date().toISOString().slice(0, 10);
+
+const distKm = (lat1, lon1, lat2, lon2) => {
+  const R = 6371;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = Math.sin(dLat / 2) ** 2 + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon / 2) ** 2;
+  const d = R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return d < 1 ? Math.round(d * 1000) + 'm' : d.toFixed(1) + 'km';
+};
+
+const rawDistKm = (lat1, lon1, lat2, lon2) => {
+  const R = 6371;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = Math.sin(dLat / 2) ** 2 + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+};
+
+const adjustStock = (idProd, delta) => {
+  if (!idProd || !delta) return;
+  const rows = S.db.produk || [], c = S.cols.produk || [];
+  const idI = c.indexOf('idproduk'), stI = c.indexOf('stok');
+  if (stI === -1) return;
+  const pid = String(idProd).trim().toLowerCase();
+  const row = rows.find(r => String((idI !== -1 ? r[idI] : r[0]) ?? '').trim().toLowerCase() === pid);
+  if (row) {
+    const cur = parseFloat(row[stI]) || 0;
+    row[stI] = String(Math.round((cur + delta) * 1000) / 1000);
+  }
+};
+
+const syncStockDelta = (sh, oldRow, newRow) => {
+  if (!sh || (!oldRow && !newRow)) return;
+  const c = S.cols[sh] || [];
+  const idI = c.indexOf('idproduk'), qI = c.indexOf('qty');
+  const getInfo = r => {
+    if (!r) return null;
+    const id = idI !== -1 ? r[idI] : r[0];
+    const q = qI !== -1 ? (parseFloat(r[qI]) || 0) : 0;
+    return { id, q };
+  };
+  const o = getInfo(oldRow), n = getInfo(newRow);
+
+  if (sh === 'produk_jual' || sh === 'ecer') {
+    if (o) adjustStock(o.id, o.q);
+    if (n) adjustStock(n.id, -n.q);
+  } else if (sh === 'produk_beli') {
+    if (o) adjustStock(o.id, -o.q);
+    if (n) adjustStock(n.id, n.q);
+  }
+};
+
+const msg = t => {
+  dom.msg.innerHTML = '';
+  if (!t) { dom.msg.hidden = true; return; }
+  dom.msg.hidden = false;
+  dom.msg.textContent = t + ' ';
+  const b = document.createElement('button');
+  b.setAttribute('data-a', 'closemsg');
+  b.textContent = 'x';
+  dom.msg.appendChild(b);
+};
+
+const dl = (str, name, mime) => {
+  const u = URL.createObjectURL(new Blob([str], { type: mime }));
+  const a = document.createElement('a'); a.href = u; a.download = name;
+  document.body.appendChild(a); a.click();
+  setTimeout(() => { a.remove(); URL.revokeObjectURL(u); }, 500);
+};
+
+const calcItems = (pType, pId) => {
+  const ch = childOf(pType);
+  if (!ch) return { raw: 0, disc: 0, cogs: 0, pot: 0, items: [] };
+  const rows = S.db[ch] || [], c = S.cols[ch] || [];
+  const fkI = c.indexOf(fkCol(ch)), nmI = c.indexOf('namaproduk');
+  const qI = c.indexOf('qty'), prI = c.indexOf(pType === 'penjualan' ? 'hargajual' : 'hargabeli'), dcI = c.indexOf('diskon');
+  const hbI = c.indexOf('hargabeli'), hjI = c.indexOf('hargajual');
+  const idpI = c.indexOf('idproduk');
+  const tid = String(pId || '').trim().toLowerCase();
+
+  let raw = 0, disc = 0, cogs = 0, pot = 0;
+  const items = [];
+  rows.forEach(r => {
+    if (fkI === -1 || String(r[fkI] ?? '').trim().toLowerCase() !== tid) return;
+    const name = nmI !== -1 ? (r[nmI] || 'item') : 'item';
+    const idproduk = idpI !== -1 ? r[idpI] : '';
+    const qty = qI !== -1 ? (parseFloat(r[qI]) || 0) : 0;
+    const price = prI !== -1 ? (parseFloat(r[prI]) || 0) : 0;
+    const buy = hbI !== -1 ? (parseFloat(r[hbI]) || 0) : 0;
+    const sell = hjI !== -1 ? (parseFloat(r[hjI]) || 0) : 0;
+    const dVal = dcI !== -1 ? (parseFloat(r[dcI]) || 0) : 0;
+    const dPerUnit = dVal > 0 ? (dVal < price ? dVal : (qty > 0 ? dVal / qty : 0)) : 0;
+    const dLine = dVal > 0 ? (dVal < price ? dVal * qty : dVal) : 0;
+    const eff = Math.max(0, price - dPerUnit);
+    const lineTot = (qty * price) - dLine;
+
+    raw += (qty * price);
+    disc += dLine;
+    cogs += (qty * buy);
+    pot += (qty * sell);
+    items.push({ name, idproduk, qty, price, buy, sell, dPerUnit, eff, lineTot });
+  });
+  return { raw, disc, cogs, pot, items };
+};
+
+const formatNota = idjual => {
+  const pRows = S.db.penjualan || [], pCols = S.cols.penjualan || [];
+  const row = pRows.find(r => String(r[0] ?? '').trim().toLowerCase() === String(idjual ?? '').trim().toLowerCase());
+  if (!row) return 'nota kosong';
+
+  const valOf = k => row[pCols.indexOf(k)] ?? '';
+  const dateStr = valOf('date') || today();
+  const discNota = parseFloat(valOf('diskon')) || 0;
+  const directPay = parseFloat(valOf('bayar')) || 0;
+  const kontak = valOf('kontak'), catatan = valOf('catatan'), user = valOf('user') || S.u || 'admin';
+
+  let cicilSum = 0;
+  const cCols = S.cols.cicil || [], cIdI = cCols.indexOf('idjual'), cJmlI = cCols.indexOf('jumlah');
+  (S.db.cicil || []).forEach(c => {
+    if (cIdI !== -1 && String(c[cIdI] ?? '').trim().toLowerCase() === String(idjual).trim().toLowerCase()) {
+      cicilSum += (cJmlI !== -1 ? parseFloat(c[cJmlI]) || 0 : 0);
+    }
+  });
+  const totalBayar = directPay + cicilSum;
+
+  let hp = '';
+  if (kontak) {
+    const kRows = S.db.kontak || [], kCols = S.cols.kontak || [];
+    const nmI = kCols.indexOf('nama'), hpI = kCols.indexOf('hp'), idI = kCols.indexOf('idkontak');
+    const matched = kRows.find(k => (nmI !== -1 && String(k[nmI] ?? '').trim().toLowerCase() === kontak.trim().toLowerCase()) ||
+                                   (idI !== -1 && String(k[idI] ?? '').trim().toLowerCase() === kontak.trim().toLowerCase()));
+    if (matched && hpI !== -1) hp = matched[hpI] || '';
+  }
+
+  const { raw, disc: discItem, items } = calcItems('penjualan', idjual);
+  const grandTotal = Math.max(0, raw - discItem - discNota);
+  const diff = totalBayar - grandTotal;
+  const isLunas = diff >= 0, sisa = Math.abs(diff);
+
+  const W = 32;
+  const center = s => {
+    s = String(s || '').trim();
+    return s.length >= W ? s.slice(0, W) : ' '.repeat(Math.floor((W - s.length) / 2)) + s;
+  };
+  const lr = (l, r) => {
+    l = String(l || ''); r = String(r || '');
+    return l + ' '.repeat(Math.max(1, W - l.length - r.length)) + r;
+  };
+
+  const lines = [
+    center(S.store.name),
+    S.store.sub ? center(S.store.sub) : null,
+    S.store.phone ? center(S.store.phone) : null,
+    S.store.bank ? center(S.store.bank) : null,
+    '='.repeat(W),
+    lr(`${dateStr} ${idjual}`, user),
+    '-'.repeat(W)
+  ].filter(Boolean);
+
+  if (!items.length) {
+    lines.push('(kosong)');
+  } else {
+    items.forEach(it => {
+      lines.push(it.name);
+      if (it.dPerUnit > 0) lines.push(`${fmtNum(it.price)} -disc ${fmtNum(it.dPerUnit)}`);
+      lines.push(lr(`${it.qty}x ${fmtNum(it.eff)}`, fmtNum(it.lineTot)));
+    });
+  }
+
+  lines.push('-'.repeat(W));
+  lines.push(lr('Subtotal', fmtNum(raw)));
+  if (discItem > 0) lines.push(lr('Diskon Item', '-' + fmtNum(discItem)));
+  if (discNota > 0) lines.push(lr('Diskon', '-' + fmtNum(discNota)));
+  lines.push(lr('Total', fmtNum(grandTotal)));
+  lines.push(lr('Bayar', fmtNum(totalBayar)));
+  lines.push(lr(isLunas ? 'Kembali' : 'Kurang', fmtNum(sisa)));
+  lines.push('-'.repeat(W));
+
+  if (S.store.footer) lines.push(center(S.store.footer));
+  if (kontak) lines.push(' ' + kontak);
+  if (hp) lines.push(' ' + hp);
+  if (catatan) lines.push(' ' + catatan);
+  if (!isLunas) lines.push(lr('Total Piutang', '-' + fmtNum(sisa)));
+
+  return lines.join('\n');
+};
+
+const syncTrx = (pType, pId) => {
+  if (!pType || !pId) return;
+  const rows = S.db[pType] || [], c = S.cols[pType] || [];
+  const idx = rows.findIndex(r => String(r[0] ?? '').trim().toLowerCase() === String(pId).trim().toLowerCase());
+  if (idx === -1) return;
+  const sI = c.indexOf('status'), bI = c.indexOf('bayar'), dI = c.indexOf('diskon');
+  if (sI === -1 || bI === -1) return;
+
+  const paid = parseFloat(rows[idx][bI]) || 0;
+  const discNota = dI !== -1 ? (parseFloat(rows[idx][dI]) || 0) : 0;
+  const { raw, disc } = calcItems(pType, pId);
+  const net = Math.max(0, raw - disc - discNota);
+
+  let cicil = 0;
+  if (pType === 'penjualan') {
+    const cCols = S.cols.cicil || [], cIdI = cCols.indexOf('idjual'), cJmlI = cCols.indexOf('jumlah');
+    (S.db.cicil || []).forEach(rowC => {
+      if (cIdI !== -1 && String(rowC[cIdI] ?? '').trim().toLowerCase() === String(pId).trim().toLowerCase()) {
+        cicil += (cJmlI !== -1 ? parseFloat(rowC[cJmlI]) || 0 : 0);
+      }
+    });
+  }
+  const totPaid = paid + cicil;
+  if (rows[idx][sI] !== 'revisi') {
+    rows[idx][sI] = net <= 0 || totPaid <= 0 ? 'draft' : totPaid >= net ? 'lunas' : 'piutang';
+  }
+  persist();
+};
+
+const getUserDraft = pType => {
+  const pRows = S.db[pType] || [], pCols = S.cols[pType] || [];
+  const uI = pCols.indexOf('user'), sI = pCols.indexOf('status');
+  const u = (S.u || 'admin').trim().toLowerCase();
+  const row = pRows.find(r => {
+    const rUser = uI !== -1 ? String(r[uI] ?? '').trim().toLowerCase() : '';
+    const rStat = sI !== -1 ? String(r[sI] ?? '').trim().toLowerCase() : '';
+    return (!u || rUser === u) && (rStat === 'draft' || rStat === 'revisi');
+  });
+  return row ? { type: pType, id: row[0], row, status: sI !== -1 ? row[sI] : 'draft' } : null;
+};
+
+const getOpenTrx = pType => {
+  if (!pType) return null;
+  const pRows = S.db[pType] || [], pCols = S.cols[pType] || [];
+  const sI = pCols.indexOf('status');
+  if (S.parent && S.parent.type === pType) {
+    const r = pRows.find(row => String(row[0] ?? '').trim().toLowerCase() === String(S.parent.id).trim().toLowerCase());
+    if (r) {
+      const st = sI !== -1 ? String(r[sI] ?? '').trim().toLowerCase() : '';
+      if (st === 'draft' || st === 'revisi') return { type: pType, id: r[0], row: r, status: st };
+    }
+  }
+  return getUserDraft(pType);
+};
+
+const hasDraftItems = pType => {
+  const ch = childOf(pType);
+  if (!ch) return false;
+  const open = getOpenTrx(pType);
+  if (!open) return false;
+  const fkI = (S.cols[ch] || []).indexOf(fkCol(ch));
+  if (fkI === -1) return false;
+  const pid = String(open.id).trim().toLowerCase();
+  return (S.db[ch] || []).some(r => String(r[fkI] ?? '').trim().toLowerCase() === pid);
+};
+
+const queryRows = () => {
+  const rows = S.db[S.cur] || [];
+  const q = (dom.q.value || '').trim().toLowerCase().split(/\s+/).filter(Boolean);
+  const pType = parentOf(S.cur);
+  const fkI = pType ? cols().indexOf(fkCol(S.cur)) : -1;
+  const openTrx = pType ? getOpenTrx(pType) : null;
+  const stI = S.cur === 'produk' ? (S.cols.produk || []).indexOf('stok') : -1;
+
+  const res = [];
+  for (let i = 0; i < rows.length; i++) {
+    const r = rows[i] || [];
+    if (S.cur === 'produk' && S.readyOnly && stI !== -1) {
+      if ((parseFloat(r[stI]) || 0) <= 0) continue;
+    }
+    if (pType && fkI !== -1 && openTrx) {
+      if (String(r[fkI] ?? '').trim().toLowerCase() !== String(openTrx.id).trim().toLowerCase()) continue;
+    }
+    if (!q.length || q.every(w => r.join(' ').toLowerCase().includes(w))) res.push(i);
+  }
+
+  if (S.sort === 'near' && S.myLoc) {
+    const lkI = cols().indexOf('lokasi');
+    const alI = cols().indexOf('alamat');
+    if (lkI !== -1 || alI !== -1) {
+      res.sort((a, b) => {
+        const getCoord = r => {
+          const loc = ((lkI !== -1 ? r[lkI] : '') || (alI !== -1 ? r[alI] : '')).trim();
+          const m = loc.match(/^(-?\d+(\.\d+)?),\s*(-?\d+(\.\d+)?)$/);
+          return m ? { lat: parseFloat(m[1]), lng: parseFloat(m[3]) } : null;
+        };
+        const ca = getCoord(rows[a] || []), cb = getCoord(rows[b] || []);
+        if (!ca && !cb) return 0;
+        if (!ca) return 1;
+        if (!cb) return -1;
+        return rawDistKm(S.myLoc.lat, S.myLoc.lng, ca.lat, ca.lng) - rawDistKm(S.myLoc.lat, S.myLoc.lng, cb.lat, cb.lng);
+      });
+    }
+  } else if (S.sort > 0 && S.sort <= cols().length) {
+    const ci = S.sort - 1;
+    res.sort((a, b) => String((rows[a] || [])[ci] ?? '').localeCompare(String((rows[b] || [])[ci] ?? ''), undefined, { numeric: true }) * S.dir);
+  } else if (S.dir === -1) {
+    res.reverse();
+  }
+  return res;
+};
+
+const renderChrome = () => {
+  const key = S.shs.join(',');
+  if (dom.sh.dataset.shs !== key) {
+    dom.sh.innerHTML = '';
+    S.shs.forEach(s => {
+      const opt = document.createElement('option');
+      opt.value = s; opt.textContent = s;
+      dom.sh.appendChild(opt);
+    });
+    dom.sh.dataset.shs = key;
+  }
+  if (dom.sh.value !== S.cur) dom.sh.value = S.cur;
+
+  const c = cols();
+  const hasLoc = c.includes('lokasi') || c.includes('alamat');
+  const targetLen = c.length + 1 + (hasLoc ? 1 : 0);
+  if (dom.st.dataset.cur !== S.cur || dom.st.children.length !== targetLen) {
+    dom.st.innerHTML = '<option value="0">srt</option>';
+    if (hasLoc) {
+      const optNear = document.createElement('option');
+      optNear.value = 'near'; optNear.textContent = 'terdekat';
+      dom.st.appendChild(optNear);
+    }
+    c.forEach((col, i) => {
+      const opt = document.createElement('option');
+      opt.value = String(i + 1); opt.textContent = col;
+      dom.st.appendChild(opt);
+    });
+    dom.st.dataset.cur = S.cur;
+  }
+  dom.st.value = String(S.sort);
+};
+
+const renderNavFooters = () => {
+  const addBtn = (a, txt) => {
+    const b = document.createElement('button');
+    b.setAttribute('data-a', a); b.textContent = txt; dom.ft.appendChild(b);
+  };
+  if (S.v !== 'dash') addBtn('v-dash', 'dashboard');
+  if (S.cur !== 'kas') addBtn('v-kas', 'kas');
+  if (S.cur !== 'produk') addBtn('v-shop', 'produk');
+  if (S.cur !== 'produk_jual' && hasDraftItems('penjualan')) addBtn('v-jual', 'jual');
+  if (S.cur !== 'produk_beli' && hasDraftItems('pembelian')) addBtn('v-beli', 'beli');
+};
+
+const renderDash = () => {
+  const userSet = new Set(['admin']);
+  (S.db.users || []).forEach(u => u[0] && userSet.add(u[0]));
+  ['penjualan','pembelian','kas','cicil','ecer','roles','cms','absen'].forEach(sh => {
+    const uIdx = (S.cols[sh] || []).indexOf('user');
+    if (uIdx !== -1) (S.db[sh] || []).forEach(r => r[uIdx] && userSet.add(r[uIdx]));
+  });
+
+  const katSet = new Set();
+  const prColsAll = S.cols.produk || [], subI = prColsAll.indexOf('subkategori'), katI = prColsAll.indexOf('kategori');
+  (S.db.produk || []).forEach(p => {
+    if (subI !== -1 && p[subI]) katSet.add(p[subI]);
+    if (katI !== -1 && p[katI]) katSet.add(p[katI]);
+  });
+  const kasKatI = (S.cols.kas || []).indexOf('kategori');
+  if (kasKatI !== -1) (S.db.kas || []).forEach(k => k[kasKatI] && katSet.add(k[kasKatI]));
+  const kKatI = (S.cols.kontak || []).indexOf('kategori');
+  if (kKatI !== -1) (S.db.kontak || []).forEach(k => k[kKatI] && katSet.add(k[kKatI]));
+
+  const fltDiv = document.createElement('div');
+  fltDiv.style.cssText = 'display:flex;flex-wrap:wrap;gap:2px;width:100%;margin-bottom:2px';
+  fltDiv.innerHTML = `
+    <input placeholder="user" data-df="u" value="${S.df.u}" list="dl-df-user">
+    <datalist id="dl-df-user">${Array.from(userSet).map(u => `<option value="${u}"></option>`).join('')}</datalist>
+    <input type="date" data-df="from" value="${S.df.from}">
+    <input type="date" data-df="to" value="${S.df.to}">
+    <input placeholder="kategori" data-df="kat" value="${S.df.kat}" list="dl-df-kat">
+    <datalist id="dl-df-kat">${Array.from(katSet).map(k => `<option value="${k}"></option>`).join('')}</datalist>
+    <button data-a="df-today" style="flex:0 0 auto;padding:0 6px">hari ini</button>
+    <button data-a="df-clear" style="flex:0 0 auto;padding:0 6px">clear</button>
+  `;
+  dom.db.appendChild(fltDiv);
+
+  const prodKat = {};
+  const prCols = S.cols.produk || [], pIdI = prCols.indexOf('idproduk'), pSubI = prCols.indexOf('subkategori'), pKatI = prCols.indexOf('kategori');
+  (S.db.produk || []).forEach(p => {
+    const id = pIdI !== -1 ? p[pIdI] : p[0];
+    const sub = pSubI !== -1 ? (p[pSubI] || '') : '';
+    const kat = pKatI !== -1 ? (p[pKatI] || '') : '';
+    if (id) prodKat[String(id).trim().toLowerCase()] = (sub + ' ' + kat).toLowerCase();
+  });
+
+  const qWords = (dom.q.value || '').trim().toLowerCase().split(/\s+/).filter(Boolean);
+
+  const passFlt = (u, d, katExtra) => {
+    if (S.df.u && !String(u || '').toLowerCase().includes(S.df.u.toLowerCase())) return false;
+    if (S.df.from && String(d || '') < S.df.from) return false;
+    if (S.df.to && String(d || '') > S.df.to) return false;
+    if (S.df.kat && !String(katExtra || '').toLowerCase().includes(S.df.kat.toLowerCase())) return false;
+    if (qWords.length) {
+      const fullText = `${u} ${d} ${katExtra}`.toLowerCase();
+      if (!qWords.every(w => fullText.includes(w))) return false;
+    }
+    return true;
+  };
+
+  const kCols = S.cols.kas || [], kuI = kCols.indexOf('user'), kdI = kCols.indexOf('date'), kkKatI = kCols.indexOf('kategori');
+  const kmI = kCols.indexOf('masuk'), kkI = kCols.indexOf('keluar'), kuUrI = kCols.indexOf('uraian');
+  let mskAll = 0, klrAll = 0, mskFil = 0, klrFil = 0;
+  (S.db.kas || []).forEach(r => {
+    const m = kmI !== -1 ? (parseFloat(r[kmI]) || 0) : 0;
+    const k = kkI !== -1 ? (parseFloat(r[kkI]) || 0) : 0;
+    mskAll += m; klrAll += k;
+    const u = kuI !== -1 ? r[kuI] : '';
+    const d = kdI !== -1 ? r[kdI] : '';
+    const kat = kkKatI !== -1 ? (r[kkKatI] || '') : '';
+    const ur = kuUrI !== -1 ? (r[kuUrI] || '') : '';
+    if (passFlt(u, d, kat + ' ' + ur)) {
+      mskFil += m; klrFil += k;
+    }
+  });
+
+  const cicilMap = {}, cicilFilMap = {};
+  const cCols = S.cols.cicil || [], cIdI = cCols.indexOf('idjual'), cJmlI = cCols.indexOf('jumlah'), cuI = cCols.indexOf('user'), cdI = cCols.indexOf('date');
+  (S.db.cicil || []).forEach(c => {
+    if (cIdI !== -1) {
+      const cid = String(c[cIdI] || '').trim().toLowerCase();
+      const jml = cJmlI !== -1 ? (parseFloat(c[cJmlI]) || 0) : 0;
+      cicilMap[cid] = (cicilMap[cid] || 0) + jml;
+      const u = cuI !== -1 ? c[cuI] : '';
+      const d = cdI !== -1 ? c[cdI] : '';
+      if (passFlt(u, d, '')) {
+        cicilFilMap[cid] = (cicilFilMap[cid] || 0) + jml;
+      }
+    }
+  });
+
+  let totJualAll = 0, totProfitFil = 0, totJualFil = 0, totPiutangAll = 0, totPiutangFil = 0;
+  const pRows = S.db.penjualan || [], pCols = S.cols.penjualan || [];
+  const pDiscI = pCols.indexOf('diskon'), pBayarI = pCols.indexOf('bayar');
+  const puI = pCols.indexOf('user'), pdI = pCols.indexOf('date'), pkI = pCols.indexOf('kontak'), pcI = pCols.indexOf('catatan');
+
+  pRows.forEach(r => {
+    const pid = r[0];
+    const { raw, disc, cogs, items } = calcItems('penjualan', pid);
+    const dNota = pDiscI !== -1 ? (parseFloat(r[pDiscI]) || 0) : 0;
+    const net = Math.max(0, raw - disc - dNota);
+    const profit = net - cogs;
+    const directPay = pBayarI !== -1 ? (parseFloat(r[pBayarI]) || 0) : 0;
+    const paidAll = directPay + (cicilMap[String(pid || '').trim().toLowerCase()] || 0);
+    const paidFil = directPay + (cicilFilMap[String(pid || '').trim().toLowerCase()] || 0);
+
+    totJualAll += net;
+    if (paidAll < net) totPiutangAll += (net - paidAll);
+
+    const u = puI !== -1 ? r[puI] : '';
+    const d = pdI !== -1 ? r[pdI] : '';
+    const k = pkI !== -1 ? (r[pkI] || '') : '';
+    const c = pcI !== -1 ? (r[pcI] || '') : '';
+    const katItems = items.map(it => prodKat[String(it.idproduk || '').trim().toLowerCase()] || '').join(' ');
+    if (passFlt(u, d, k + ' ' + c + ' ' + katItems)) {
+      totJualFil += net;
+      totProfitFil += profit;
+      if (paidFil < net) totPiutangFil += (net - paidFil);
+    }
+  });
+
+  const eCols = S.cols.ecer || [];
+  const eqI = eCols.indexOf('qty'), ehbI = eCols.indexOf('hargabeli'), ehjI = eCols.indexOf('hargajual'), edI = eCols.indexOf('diskon');
+  const euI = eCols.indexOf('user'), edateI = eCols.indexOf('date'), epidI = eCols.indexOf('idproduk'), ecatI = eCols.indexOf('catatan');
+  let ecerQtyFil = 0;
+  (S.db.ecer || []).forEach(r => {
+    const q = eqI !== -1 ? (parseFloat(r[eqI]) || 0) : 0;
+    const hb = ehbI !== -1 ? (parseFloat(r[ehbI]) || 0) : 0;
+    const hj = ehjI !== -1 ? (parseFloat(r[ehjI]) || 0) : 0;
+    const dVal = edI !== -1 ? (parseFloat(r[edI]) || 0) : 0;
+    const net = Math.max(0, (q * hj) - dVal);
+    const profit = net - (q * hb);
+
+    totJualAll += net;
+    const u = euI !== -1 ? r[euI] : '';
+    const d = edateI !== -1 ? r[edateI] : '';
+    const pid = epidI !== -1 ? r[epidI] : '';
+    const ct = ecatI !== -1 ? (r[ecatI] || '') : '';
+    const pK = prodKat[String(pid).trim().toLowerCase()] || '';
+    if (passFlt(u, d, ct + ' ' + pK)) {
+      totJualFil += net;
+      totProfitFil += profit;
+      ecerQtyFil += q;
+    }
+  });
+
+  let totBeliFil = 0;
+  const pbRows = S.db.pembelian || [], pbCols = S.cols.pembelian || [];
+  const pbuI = pbCols.indexOf('user'), pbdI = pbCols.indexOf('date'), pbkI = pbCols.indexOf('kontak'), pbcI = pbCols.indexOf('catatan');
+  pbRows.forEach(r => {
+    const pid = r[0];
+    const { raw, disc, items } = calcItems('pembelian', pid);
+    const net = Math.max(0, raw - disc);
+    const u = pbuI !== -1 ? r[pbuI] : '';
+    const d = pbdI !== -1 ? r[pbdI] : '';
+    const k = pbkI !== -1 ? (r[pbkI] || '') : '';
+    const c = pbcI !== -1 ? (r[pbcI] || '') : '';
+    const katItems = items.map(it => prodKat[String(it.idproduk || '').trim().toLowerCase()] || '').join(' ');
+    if (passFlt(u, d, k + ' ' + c + ' ' + katItems)) {
+      totBeliFil += net;
+    }
+  });
+
+  const pbiCols = S.cols.produk_beli || [], pbiQI = pbiCols.indexOf('qty');
+  let stokMasuk = (S.db.produk_beli || []).reduce((acc, r) => acc + (pbiQI !== -1 ? (parseFloat(r[pbiQI]) || 0) : 0), 0);
+
+  const pjiCols = S.cols.produk_jual || [], pjiQI = pjiCols.indexOf('qty');
+  let stokKeluar = (S.db.produk_jual || []).reduce((acc, r) => acc + (pjiQI !== -1 ? (parseFloat(r[pjiQI]) || 0) : 0), 0) + ecerQtyFil;
+
+  let sisaStok = 0, readyCount = 0, estModal = 0, estJual = 0;
+  const stI = prCols.indexOf('stok'), hbI = prCols.indexOf('hargabeli'), hjI = prCols.indexOf('hargajual');
+  (S.db.produk || []).forEach(r => {
+    const s = stI !== -1 ? (parseFloat(r[stI]) || 0) : 0;
+    const hb = hbI !== -1 ? (parseFloat(r[hbI]) || 0) : 0;
+    const hj = hjI !== -1 ? (parseFloat(r[hjI]) || 0) : 0;
+    const pSub = pSubI !== -1 ? (r[pSubI] || '') : '';
+    const pKat = pKatI !== -1 ? (r[pKatI] || '') : '';
+    if (passFlt('', '', pSub + ' ' + pKat)) {
+      sisaStok += s;
+      if (s > 0) {
+        readyCount++;
+        estModal += (s * hb);
+        estJual += (s * hj);
+      }
+    }
+  });
+  const estProfit = estJual - estModal;
+
+  const saldoTotal = mskAll + totJualAll - klrAll - totPiutangAll;
+  const saldoFilter = mskFil + totJualFil - klrFil - totPiutangFil;
+
+  [
+    { l: 'saldo total', v: fmtNum(saldoTotal), s: 'kas' },
+    { l: 'saldo filter', v: fmtNum(saldoFilter), s: 'penjualan' },
+    { l: 'user', v: S.u || 'admin', s: 'users' },
+    { l: 'profit', v: fmtNum(totProfitFil), s: 'penjualan' },
+    { l: 'kas masuk', v: fmtNum(mskFil), s: 'kas' },
+    { l: 'kas keluar', v: fmtNum(klrFil), s: 'kas' },
+    { l: 'total penjualan', v: fmtNum(totJualFil), s: 'penjualan' },
+    { l: 'total pembelian', v: fmtNum(totBeliFil), s: 'pembelian' },
+    { l: 'total piutang', v: fmtNum(totPiutangFil), s: 'penjualan' },
+    { l: 'stok masuk', v: fmtNum(stokMasuk), s: 'produk_beli' },
+    { l: 'stok keluar', v: fmtNum(stokKeluar), s: 'produk_jual' },
+    { l: 'sisa stok', v: fmtNum(sisaStok), s: 'produk' },
+    { l: 'produk ready stok', v: readyCount + ' item', s: 'produk', slice: 'ready' },
+    { l: 'estimasi modal ready', v: fmtNum(estModal), s: 'produk', slice: 'ready' },
+    { l: 'estimasi jual ready', v: fmtNum(estJual), s: 'produk', slice: 'ready' },
+    { l: 'estimasi profit ready', v: fmtNum(estProfit), s: 'produk', slice: 'ready' }
+  ].forEach(card => {
+    const b = document.createElement('button');
+    b.setAttribute('data-a', 'nav'); b.setAttribute('data-s', card.s);
+    if (card.slice) b.setAttribute('data-slice', card.slice);
+    b.innerHTML = `<span>${card.l}</span><b>${card.v}</b>`;
+    dom.db.appendChild(b);
+  });
+  renderNavFooters();
+};
+
+const renderForm = () => {
+  const addBtn = (a, txt) => {
+    const b = document.createElement('button');
+    b.setAttribute('data-a', a); b.textContent = txt; dom.ft.appendChild(b);
+  };
+
+  if (!S.u) {
+    dom.fb.innerHTML = `
+      <input placeholder="user" autocomplete="off" data-f="user">
+      <input type="password" placeholder="password" data-f="pass">
+    `;
+    addBtn('login', 'login'); addBtn('reg', 'register'); addBtn('bypass', 'bypass');
+    return;
+  }
+
+  if (S.v === 'bulksheet') {
+    const lines = S.shs.map(s => `${s}:${(S.cols[s] || []).join(',')}`).join('\n');
+    dom.fb.innerHTML = `<textarea placeholder="sheet:kolom,kolom" style="min-height:120px">${lines}</textarea>`;
+    addBtn('save-bulksheet', 'save'); addBtn('cancel', 'cancel');
+    return;
+  }
+  if (S.v === 'toko') {
+    dom.fb.innerHTML = `
+      <input placeholder="name" value="${S.store.name}" data-cfg="name">
+      <input placeholder="sub" value="${S.store.sub}" data-cfg="sub">
+      <input placeholder="phone" value="${S.store.phone}" data-cfg="phone">
+      <input placeholder="bank" value="${S.store.bank}" data-cfg="bank">
+      <textarea placeholder="footer" data-cfg="footer">${S.store.footer}</textarea>
+    `;
+    addBtn('save-store', 'save'); addBtn('cancel', 'cancel');
+    return;
+  }
+  if (S.v === 'conn') {
+    dom.fb.innerHTML = `
+      <textarea placeholder="sid">${S.sid}</textarea>
+      <textarea placeholder="appurl">${S.appurl}</textarea>
+      <textarea placeholder="d1url">${S.d1url}</textarea>
+    `;
+    addBtn('save-conn', 'save'); addBtn('cancel', 'cancel');
+    return;
+  }
+  if (S.v === 'schema') {
+    dom.fb.innerHTML = `
+      <input placeholder="cols" value="${cols().join(',')}" data-f="cols">
+      <input placeholder="vis (list)" value="${vis().join(',')}" data-f="vis">
+      <input placeholder="form" value="${fvis().join(',')}" data-f="form">
+    `;
+    addBtn('save-schema', 'save'); addBtn('cancel', 'cancel');
+    return;
+  }
+
+  const c = cols(), formCols = fvis();
+  const row = (S.idx !== null && S.idx >= 0) ? (S.db[S.cur][S.idx] || []) : [];
+  const sI = c.indexOf('status');
+  const isDraft = isTrx() && sI !== -1 && String(row[sI] || '').toLowerCase() === 'draft';
+
+  formCols.forEach(col => {
+    const i = c.indexOf(col);
+    let val = (S.idx === -1 && i === 0) ? genId() : (row[i] ?? '');
+    if (S.idx === -1 && S.prefill?.[col] != null) val = S.prefill[col];
+    else if (S.idx === -1 && !val && /date|tanggal/i.test(col)) val = today();
+    else if (S.idx === -1 && !val && col === 'user') val = S.u || 'admin';
+
+    const isLong = /catatan|alamat|uraian|konten/i.test(col);
+    const inp = document.createElement(isLong ? 'textarea' : 'input');
+    inp.placeholder = col; inp.value = val; inp.setAttribute('data-col', col);
+
+    if (col === 'idproduk' || col === 'namaproduk') {
+      inp.setAttribute('list', 'dl-form-produk');
+      let dl = dom.fb.querySelector('#dl-form-produk');
+      if (!dl) {
+        dl = document.createElement('datalist');
+        dl.id = 'dl-form-produk';
+        dom.fb.appendChild(dl);
+      }
+      dl.innerHTML = (S.db.produk || []).map(p => `<option value="${p[0]}">${p[3] || p[0]}</option><option value="${p[3]}">${p[0]}</option>`).join('');
+    } else if (col === 'user') {
+      inp.setAttribute('list', 'dl-form-user');
+      let dl = dom.fb.querySelector('#dl-form-user');
+      if (!dl) {
+        dl = document.createElement('datalist');
+        dl.id = 'dl-form-user';
+        dom.fb.appendChild(dl);
+      }
+      dl.innerHTML = (S.db.users || []).map(u => `<option value="${u[0]}"></option>`).join('');
+    } else if (col === 'kategori' || col === 'subkategori') {
+      const dlId = 'dl-form-' + col;
+      inp.setAttribute('list', dlId);
+      let dl = dom.fb.querySelector('#' + dlId);
+      if (!dl) {
+        dl = document.createElement('datalist');
+        dl.id = dlId;
+        dom.fb.appendChild(dl);
+      }
+      const setVals = new Set();
+      const pCols = S.cols[S.cur] || [], ci = pCols.indexOf(col);
+      if (ci !== -1) (S.db[S.cur] || []).forEach(r => r[ci] && setVals.add(r[ci]));
+      if (S.cur !== 'produk' && S.cols.produk) {
+        const pi = S.cols.produk.indexOf(col);
+        if (pi !== -1) (S.db.produk || []).forEach(r => r[pi] && setVals.add(r[pi]));
+      }
+      dl.innerHTML = Array.from(setVals).map(v => `<option value="${v}"></option>`).join('');
+    } else if (col === 'kontak') {
+      inp.setAttribute('list', 'dl-kontak');
+      let dl = dom.fb.querySelector('#dl-kontak');
+      if (!dl) {
+        dl = document.createElement('datalist');
+        dl.id = 'dl-kontak';
+        dom.fb.appendChild(dl);
+      }
+      dl.innerHTML = '';
+      const kCols = S.cols.kontak || [];
+      const nmI = kCols.indexOf('nama'), hpI = kCols.indexOf('hp'), idI = kCols.indexOf('idkontak');
+      (S.db.kontak || []).forEach(k => {
+        const opt = document.createElement('option');
+        const nm = nmI !== -1 ? (k[nmI] || '') : (k[3] || k[0] || '');
+        const hp = hpI !== -1 ? (k[hpI] || '') : '';
+        opt.value = nm;
+        if (hp && hp !== nm) opt.label = hp;
+        dl.appendChild(opt);
+      });
+    }
+    dom.fb.appendChild(inp);
+  });
+
+  if (isTrx() && S.idx !== null && S.idx >= 0) {
+    const pid = row[0];
+    const { raw, disc, cogs, pot } = calcItems(S.cur, pid);
+    const discNota = parseFloat(row[c.indexOf('diskon')]) || 0;
+    const net = Math.max(0, raw - disc - discNota);
+    const profit = S.cur === 'penjualan' ? (net - cogs) : (pot - net);
+    const info = document.createElement('div');
+    info.style.cssText = 'flex:1 1 100%;font-weight:700';
+    info.textContent = `total:${fmtNum(net)} profit:${fmtNum(profit)}`;
+    dom.ft.appendChild(info);
+  }
+
+  addBtn('save-row', 'save'); addBtn('cancel', 'cancel');
+  if (formCols.some(k => /foto/i.test(k))) {
+    addBtn('cam', 'kamera'); addBtn('pic', 'file'); addBtn('gimg', 'gimg');
+  }
+  if (formCols.some(k => /alamat|lokasi/i.test(k))) {
+    addBtn('gps', 'gps');
+    const locVal = formCols.map(col => row[c.indexOf(col)] || '').join(' ').trim();
+    if (/(-?\d+\.\d+),\s*(-?\d+\.\d+)/.test(locVal)) {
+      addBtn('navigasi', 'navigasi');
+      addBtn('v-map-row', 'map');
+    }
+  }
+  if (S.cur === 'produk' && S.idx !== null && S.idx >= 0) {
+    addBtn('jual-prod', 'jual'); addBtn('beli-prod', 'beli'); addBtn('ecer-prod', 'ecer');
+  }
+
+  if ((S.cur === 'produk_jual' || S.cur === 'produk_beli' || S.cur === 'ecer') && row.length) {
+    const pidCol = c.indexOf('idproduk');
+    const linkedId = pidCol !== -1 ? row[pidCol] : null;
+    if (linkedId) {
+      const pRows = S.db.produk || [];
+      const pIdI = (S.cols.produk || []).indexOf('idproduk');
+      const pIdx = pRows.findIndex(p => String((pIdI !== -1 ? p[pIdI] : p[0]) ?? '').trim().toLowerCase() === String(linkedId).trim().toLowerCase());
+      if (pIdx !== -1) S.prodIdx = pIdx;
+    }
+  }
+
+  if (S.prodIdx !== null) addBtn('edit-prod', 'edit produk');
+  if (isTrx() && S.idx !== null && S.idx >= 0) {
+    if (!isDraft) addBtn('revisi', 'revisi');
+    addBtn('pay-pas', 'pas');
+    if (!isDraft) addBtn('trx-rincian', childOf(S.cur));
+    if (S.cur === 'penjualan') addBtn('show-nota', 'nota');
+    addBtn('cicil', 'cicil');
+    if (!isDraft) addBtn('print', 'print');
+  }
+  if (S.idx !== null && S.idx >= 0) {
+    if (!isDraft) addBtn('dup-row', 'dup');
+    addBtn('del-row', S.conf === 'del' ? 'sure?' : 'del');
+  }
+};
+
+const renderList = isBulkEdit => {
+  const c = cols(), vCols = vis(), rows = S.db[S.cur] || [], matched = queryRows();
+  const vIdxs = c.map((col, i) => vCols.includes(col) ? i : -1).filter(i => i !== -1);
+  const effIdxs = vIdxs.length ? vIdxs : [0];
+  const imgIdx = c.indexOf('foto_url');
+  const limit = Math.min(S.page * 25, matched.length);
+
+  for (let m = 0; m < limit; m++) {
+    const trg = matched[m], r = rows[trg] || [];
+    const rowEl = document.createElement('div');
+    rowEl.setAttribute('data-idx', trg);
+    if (isBulkEdit) {
+      rowEl.setAttribute('contenteditable', 'plaintext-only');
+      if (!rowEl.isContentEditable) rowEl.setAttribute('contenteditable', 'true');
+      rowEl.textContent = r.join('|');
+    } else {
+      if (S.grid && imgIdx !== -1 && r[imgIdx]) {
+        const im = document.createElement('img');
+        im.src = r[imgIdx]; im.alt = ''; im.loading = 'lazy';
+        im.onerror = () => im.remove();
+        rowEl.appendChild(im);
+      }
+      rowEl.appendChild(document.createTextNode(effIdxs.map(i => r[i]).filter(x => x != null && x !== '').join(' ') || '-'));
+    }
+    dom.ls.appendChild(rowEl);
+  }
+
+  const addBtn = (a, txt) => {
+    const b = document.createElement('button');
+    b.setAttribute('data-a', a); b.textContent = txt; dom.ft.appendChild(b);
+  };
+
+  if (isBulkEdit) {
+    addBtn('save-bulk', 'save'); addBtn('cancel', 'cancel');
+  } else {
+    const pType = parentOf(S.cur);
+    const openTrx = pType ? getOpenTrx(pType) : null;
+    if (pType && openTrx) {
+      S.parent = { type: pType, id: openTrx.id, open: true };
+      const { raw, disc } = calcItems(pType, openTrx.id);
+      addBtn('clear-items', S.conf === 'clear-items' ? 'sure?' : 'clear');
+      addBtn('add', '+item');
+      addBtn('v-selesai', `${pType} (${fmtNum(raw - disc)})`);
+      if (pType === 'penjualan') addBtn('show-nota', 'nota');
+    }
+    renderNavFooters();
+  }
+  if (limit < matched.length) {
+    const moreBtn = document.createElement('button');
+    moreBtn.setAttribute('data-a', 'more'); moreBtn.textContent = 'more'; dom.tl.appendChild(moreBtn);
+  }
+};
+
+const renderNota = () => {
+  dom.tape.textContent = S.receiptRaw;
+  const addBtn = (a, txt) => {
+    const b = document.createElement('button');
+    b.setAttribute('data-a', a); b.textContent = txt; dom.ft.appendChild(b);
+  };
+  addBtn('rawbt', 'rawbt'); addBtn('print', 'print'); addBtn('copy-nota', 'copy'); addBtn('cancel', 'cancel');
+};
+
+const renderMap = () => {
+  if (!dom.mb) dom.mb = document.getElementById('box-map');
+  if (!dom.mb) return;
+  dom.mb.innerHTML = '';
+
+  const isJual = S.mapType === 'penjualan';
+  const targetSh = isJual ? 'penjualan' : 'kontak';
+  const rows = S.db[targetSh] || [];
+  const c = S.cols[targetSh] || [];
+  const lkI = c.indexOf('lokasi'), alI = c.indexOf('alamat');
+  const nmI = c.indexOf(isJual ? 'idjual' : 'nama'), subI = c.indexOf(isJual ? 'kontak' : 'hp');
+
+  const qWords = (dom.q.value || '').trim().toLowerCase().split(/\s+/).filter(Boolean);
+
+  let locItems = [];
+  rows.forEach((r, idx) => {
+    if (qWords.length) {
+      const rowTxt = r.join(' ').toLowerCase();
+      if (!qWords.every(w => rowTxt.includes(w))) return;
+    }
+    const loc = ((lkI !== -1 ? r[lkI] : '') || (alI !== -1 ? r[alI] : '')).trim();
+    const m = loc.match(/^(-?\d+(\.\d+)?),\s*(-?\d+(\.\d+)?)$/);
+    if (m) {
+      const lat = parseFloat(m[1]), lng = parseFloat(m[3]);
+      const distVal = S.myLoc ? rawDistKm(S.myLoc.lat, S.myLoc.lng, lat, lng) : 0;
+      locItems.push({
+        idx, title: (nmI !== -1 ? r[nmI] : r[0]) || ('Item ' + (idx + 1)),
+        sub: (subI !== -1 ? r[subI] : '') || '', loc,
+        lat, lng, distVal
+      });
+    }
+  });
+
+  if (S.sort === 'near' && S.myLoc) {
+    locItems.sort((a, b) => a.distVal - b.distVal);
+  }
+
+  const lim = parseInt(S.mapLimit, 10) || 20;
+  if (locItems.length > lim) locItems = locItems.slice(0, lim);
+
+  const addBtn = (a, txt) => {
+    const b = document.createElement('button');
+    b.setAttribute('data-a', a); b.textContent = txt; dom.ft.appendChild(b);
+  };
+
+  if (!locItems.length) {
+    dom.mb.innerHTML = '<div style="padding:10px 0">tidak ada koordinat (lat,lng)</div>';
+    addBtn('cancel', 'kembali');
+    return;
+  }
+
+  if (!S.mapLoc || !locItems.some(it => it.loc === S.mapLoc)) {
+    S.mapLoc = locItems[0].loc;
+  }
+  const activeItem = locItems.find(it => it.loc === S.mapLoc) || locItems[0];
+  const dStr = S.myLoc ? distKm(S.myLoc.lat, S.myLoc.lng, activeItem.lat, activeItem.lng) : '';
+
+  dom.mb.innerHTML = `
+    <div style="display:flex;gap:2px;width:100%">
+      <select id="map-sel" style="flex:1 1 auto;height:24px">
+        ${locItems.map(it => {
+          const d = S.myLoc ? ` [${distKm(S.myLoc.lat, S.myLoc.lng, it.lat, it.lng)}]` : '';
+          return `<option value="${it.loc}" ${it.loc === S.mapLoc ? 'selected' : ''}>${it.title}${d}</option>`;
+        }).join('')}
+      </select>
+      <input id="map-lim" type="number" min="1" max="100" value="${lim}" style="flex:0 0 46px;height:24px" title="limit titik">
+      <button data-a="gps-map" style="flex:0 0 auto;padding:0 6px" title="lokasi saya">gps</button>
+      <button data-a="nav-cur" style="flex:0 0 auto;padding:0 6px" title="offline geo navigation">nav</button>
+    </div>
+    <canvas id="map-cv" style="width:100%;height:180px;border:1px solid #000;background:#fff;display:block"></canvas>
+    <div style="font-size:11px;padding:2px 0;display:flex;justify-content:space-between">
+      <b>${activeItem.title}</b>
+      <span>${dStr ? 'jarak: ' + dStr : activeItem.loc}</span>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:1px;width:100%;max-height:160px;overflow-y:auto">
+      ${locItems.map(it => {
+        const isSel = it.loc === S.mapLoc;
+        const d = S.myLoc ? distKm(S.myLoc.lat, S.myLoc.lng, it.lat, it.lng) : '';
+        return `
+          <button data-a="open-map-row" data-idx="${it.idx}" data-loc="${it.loc}" style="text-align:left;height:auto;min-height:24px;padding:2px;${isSel ? 'background:#000;color:#fff' : ''}">
+            <b>${it.title}</b> <span style="font-size:10px">${d ? d + ' | ' : ''}${it.sub ? it.sub + ' | ' : ''}${it.loc}</span>
+          </button>
+        `;
+      }).join('')}
+    </div>
+  `;
+
+  const cv = document.getElementById('map-cv');
+  if (cv) {
+    const W = cv.width = cv.clientWidth || 300;
+    const H = cv.height = 180;
+    const ctx = cv.getContext('2d');
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(0, 0, W, H);
+
+    ctx.strokeStyle = '#000';
+    ctx.lineWidth = 1;
+    ctx.setLineDash([2, 2]);
+    ctx.beginPath();
+    ctx.moveTo(W / 2, 0); ctx.lineTo(W / 2, H);
+    ctx.moveTo(0, H / 2); ctx.lineTo(W, H / 2);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    const allPts = [...locItems];
+    if (S.myLoc) allPts.push(S.myLoc);
+
+    const minLat = Math.min(...allPts.map(p => p.lat));
+    const maxLat = Math.max(...allPts.map(p => p.lat));
+    const minLng = Math.min(...allPts.map(p => p.lng));
+    const maxLng = Math.max(...allPts.map(p => p.lng));
+
+    const pad = 24;
+    const latSpan = (maxLat - minLat) || 0.005;
+    const lngSpan = (maxLng - minLng) || 0.005;
+
+    const toX = lng => pad + ((lng - minLng) / lngSpan) * (W - pad * 2);
+    const toY = lat => H - pad - ((lat - minLat) / latSpan) * (H - pad * 2);
+
+    locItems.forEach(it => {
+      it.x = toX(it.lng); it.y = toY(it.lat);
+      const isSel = it.loc === S.mapLoc;
+      ctx.fillStyle = isSel ? '#000' : '#888';
+      ctx.fillRect(it.x - 3, it.y - 3, 6, 6);
+      if (isSel) {
+        ctx.strokeStyle = '#000';
+        ctx.strokeRect(it.x - 6, it.y - 6, 12, 12);
+      }
+      ctx.fillStyle = '#000';
+      ctx.font = '10px monospace';
+      ctx.fillText(it.title.slice(0, 10), it.x + 5, it.y + 3);
+    });
+
+    if (S.myLoc) {
+      const mx = toX(S.myLoc.lng), my = toY(S.myLoc.lat);
+      ctx.strokeStyle = '#000';
+      ctx.beginPath();
+      ctx.arc(mx, my, 4, 0, Math.PI * 2);
+      ctx.moveTo(mx - 7, my); ctx.lineTo(mx + 7, my);
+      ctx.moveTo(mx, my - 7); ctx.lineTo(mx, my + 7);
+      ctx.stroke();
+      ctx.fillStyle = '#000';
+      ctx.font = '10px monospace';
+      ctx.fillText('kamu', mx + 6, my + 3);
+    }
+
+    cv.onclick = ev => {
+      const rect = cv.getBoundingClientRect();
+      const cx = ev.clientX - rect.left, cy = ev.clientY - rect.top;
+      let nearest = null, minDist = 24;
+      locItems.forEach(it => {
+        const d = Math.hypot(it.x - cx, it.y - cy);
+        if (d < minDist) { minDist = d; nearest = it; }
+      });
+      if (nearest) {
+        S.cur = S.mapType === 'penjualan' ? 'penjualan' : 'kontak';
+        S.idx = nearest.idx;
+        S.v = 'form';
+        render();
+      }
+    };
+  }
+
+  addBtn('v-dash', 'dashboard');
+  addBtn(isJual ? 'v-map-kontak' : 'v-map-jual', isJual ? 'map kontak' : 'map penjualan');
+  addBtn('cancel', 'kembali');
+};
+
+const persist = () => {
+  try {
+    localStorage.setItem(STORE_KEY, JSON.stringify({
+      sid: S.sid, appurl: S.appurl, d1url: S.d1url, cur: S.cur, u: S.u, store: S.store,
+      shs: S.shs, cols: S.cols, vis: S.vis, fvis: S.fvis, db: S.db, parent: S.parent, grid: S.grid,
+      df: S.df, mapLimit: S.mapLimit
+    }));
+  } catch {}
+};
+
+const render = () => {
+  dom.act.value = '';
+  dom.fb.innerHTML = ''; dom.ft.innerHTML = ''; dom.db.innerHTML = ''; dom.ls.innerHTML = ''; dom.tl.innerHTML = '';
+  if (dom.mb) dom.mb.innerHTML = '';
+  if (!S.u) {
+    document.body.dataset.m = 'form';
+    renderForm();
+    return;
+  }
+  const isFormMode = ['toko', 'conn', 'schema', 'bulksheet'].includes(S.v) || S.idx !== null;
+  const mode = S.v === 'dash' ? 'dash' : (S.v === 'nota' ? 'nota' : (S.v === 'map' ? 'map' : (isFormMode ? 'form' : (S.v === 'edit' ? 'edit' : 'list'))));
+  document.body.dataset.m = mode;
+  document.body.dataset.v = S.grid ? 'grid' : 'list';
+  document.body.dataset.noadd = NO_ADD.includes(S.cur) ? '1' : '0';
+  renderChrome();
+
+  if (mode === 'dash') renderDash();
+  else if (mode === 'nota') renderNota();
+  else if (mode === 'map') renderMap();
+  else if (mode === 'form') renderForm();
+  else if (mode === 'edit') renderList(true);
+  else renderList(false);
+};
+
+const actions = {
+  closemsg: () => { S.conf = null; msg(''); },
+  login: () => {
+    const u = dom.fb.querySelector('[data-f="user"]')?.value.trim() || '';
+    const p = dom.fb.querySelector('[data-f="pass"]')?.value.trim() || '';
+    if (!u) return msg('user required');
+    const uRows = S.db.users || [];
+    const found = uRows.find(r => String(r[0] ?? '').trim().toLowerCase() === u.toLowerCase());
+    if (found) {
+      if (found[1] && found[1] !== p) return msg('wrong pass');
+      S.u = found[0];
+    } else {
+      if (!uRows.length && u === 'admin') {
+        S.db.users = [['admin', p || 'admin', 'admin']];
+        S.u = 'admin';
+      } else {
+        return msg('user not found');
+      }
+    }
+    persist(); S.v = 'dash'; msg(S.u); render();
+  },
+  reg: () => {
+    const u = dom.fb.querySelector('[data-f="user"]')?.value.trim() || '';
+    const p = dom.fb.querySelector('[data-f="pass"]')?.value.trim() || '';
+    if (!u) return msg('user required');
+    S.db.users = S.db.users || [];
+    const ex = S.db.users.find(r => String(r[0] ?? '').trim().toLowerCase() === u.toLowerCase());
+    if (ex) return msg('user exists');
+    S.db.users.push([u, p, 'user']);
+    S.u = u;
+    persist(); S.v = 'dash'; msg(S.u); render();
+  },
+  bypass: () => {
+    S.u = 'admin';
+    S.db.users = S.db.users || [];
+    if (!S.db.users.some(r => r[0] === 'admin')) S.db.users.push(['admin', 'admin', 'admin']);
+    persist(); S.v = 'dash'; msg('admin'); render();
+  },
+  menu: () => {
+    const isM = document.body.dataset.m === 'menu';
+    if (isM) { dom.q.value = ''; render(); }
+    else { document.body.dataset.m = 'menu'; dom.q.value = ''; Array.from(dom.sb.children).forEach(b => b.hidden = false); }
+  },
+  clr: () => {
+    dom.q.value = '';
+    if (document.body.dataset.m === 'menu') {
+      Array.from(dom.sb.children).forEach(x => x.hidden = false);
+    } else {
+      S.page = 1;
+      render();
+    }
+    dom.q.focus();
+  },
+  'df-today': () => {
+    const t = today();
+    S.df.from = t;
+    S.df.to = t;
+    persist();
+    render();
+  },
+  'df-clear': () => {
+    S.df = { u: '', from: '', to: '', kat: '' };
+    persist();
+    render();
+  },
+  'v-dash': () => { S.v = 'dash'; S.idx = null; S.conf = null; render(); },
+  'v-map-kontak': () => {
+    S.v = 'map'; S.mapType = 'kontak'; S.idx = null; S.conf = null; render();
+  },
+  'v-map-jual': () => {
+    S.v = 'map'; S.mapType = 'penjualan'; S.idx = null; S.conf = null; render();
+  },
+  'v-peta-kontak': () => actions['v-map-kontak'](),
+  'v-peta-jual': () => actions['v-map-jual'](),
+  'open-map-row': b => {
+    const idx = parseInt(b.dataset.idx, 10);
+    if (!isNaN(idx)) {
+      S.cur = S.mapType === 'penjualan' ? 'penjualan' : 'kontak';
+      S.idx = idx;
+      S.v = 'form';
+      render();
+    }
+  },
+  'gps-map': () => {
+    if (navigator.geolocation) {
+      msg('gps...');
+      navigator.geolocation.getCurrentPosition(
+        p => {
+          S.myLoc = { lat: p.coords.latitude, lng: p.coords.longitude };
+          msg(`posisi ok (${p.coords.latitude.toFixed(4)},${p.coords.longitude.toFixed(4)})`);
+          render();
+        },
+        () => msg('gps err'),
+        { enableHighAccuracy: true, timeout: 6000 }
+      );
+    } else {
+      msg('no gps');
+    }
+  },
+  'nav-cur': () => {
+    if (!S.mapLoc) return;
+    const uri = 'geo:' + S.mapLoc + '?q=' + encodeURIComponent(S.mapLoc);
+    if (/Android|iPhone|iPad/i.test(navigator.userAgent)) {
+      window.location.href = uri;
+    } else {
+      window.open('https://www.google.com/maps/dir/?api=1&destination=' + encodeURIComponent(S.mapLoc), '_blank');
+    }
+  },
+  'v-map-row': () => {
+    const c = cols();
+    const row = S.db[S.cur]?.[S.idx] || [];
+    const loc = row.find(v => /^-?\d+(\.\d+)?,\s*-?\d+(\.\d+)?$/.test((v || '').trim()));
+    if (loc) {
+      S.mapLoc = loc.trim();
+      S.mapType = S.cur === 'penjualan' ? 'penjualan' : 'kontak';
+      S.v = 'map';
+      render();
+    } else {
+      msg('tidak ada koordinat');
+    }
+  },
+  'v-toko': () => { S.v = 'toko'; S.idx = null; S.conf = null; render(); },
+  'v-conn': () => { S.v = 'conn'; S.idx = null; S.conf = null; render(); },
+  'v-kas': () => {
+    if (!S.shs.includes('kas')) S.shs.push('kas');
+    S.cur = 'kas'; S.idx = -1; S.v = 'form'; render();
+  },
+  'v-shop': () => { S.cur = 'produk'; S.grid = true; S.v = 'list'; S.idx = null; S.readyOnly = false; render(); },
+  'v-jual': () => {
+    const openTrx = getOpenTrx('penjualan');
+    if (openTrx) S.parent = { type: 'penjualan', id: openTrx.id, open: true };
+    S.cur = 'produk_jual'; S.grid = false; S.v = 'list'; S.idx = null; render();
+  },
+  'v-beli': () => {
+    const openTrx = getOpenTrx('pembelian');
+    if (openTrx) S.parent = { type: 'pembelian', id: openTrx.id, open: true };
+    S.cur = 'produk_beli'; S.grid = false; S.v = 'list'; S.idx = null; render();
+  },
+  'v-selesai': () => {
+    if (!S.parent) return;
+    const pType = S.parent.type;
+    const rows = S.db[pType] || [];
+    const fi = rows.findIndex(r => String(r[0] ?? '').trim().toLowerCase() === String(S.parent.id).trim().toLowerCase());
+    S.cur = pType; S.idx = fi !== -1 ? fi : null; S.v = 'form'; render();
+  },
+  'clear-items': () => {
+    if (S.conf !== 'clear-items') {
+      S.conf = 'clear-items';
+      msg('clear items? tap lagi');
+      return render();
+    }
+    if (!S.parent) return;
+    const ch = childOf(S.parent.type);
+    if (!ch) return;
+    const fkI = (S.cols[ch] || []).indexOf(fkCol(ch));
+    if (fkI !== -1) {
+      const pid = String(S.parent.id).trim().toLowerCase();
+      const removed = (S.db[ch] || []).filter(r => String(r[fkI] ?? '').trim().toLowerCase() === pid);
+      removed.forEach(r => syncStockDelta(ch, r, null));
+      S.db[ch] = (S.db[ch] || []).filter(r => String(r[fkI] ?? '').trim().toLowerCase() !== pid);
+      persist();
+      syncTrx(S.parent.type, S.parent.id);
+    }
+    S.conf = null; msg('ok'); render();
+  },
+  cancel: () => {
+    if (S.prodIdx !== null) {
+      S.cur = 'produk'; S.grid = true; S.v = 'list'; S.idx = null; S.prodIdx = null; S.prefill = null; S.readyOnly = false;
+      return render();
+    }
+    S.v = 'list'; S.idx = null; S.prefill = null; S.conf = null; S.prodIdx = null; S.readyOnly = false; render();
+  },
+  nav: b => {
+    S.cur = b.dataset.s; S.v = 'list'; S.idx = null; S.page = 1; S.conf = null;
+    S.readyOnly = b.dataset.slice === 'ready';
+    render();
+  },
+  add: () => {
+    if (NO_ADD.includes(S.cur)) return;
+    S.idx = -1; S.v = 'form'; render();
+  },
+  'edit-prod': () => {
+    if (S.prodIdx === null) return;
+    S.cur = 'produk'; S.idx = S.prodIdx; S.prodIdx = null; S.prefill = null; S.v = 'form'; render();
+  },
+  'jual-prod': () => {
+    if (S.idx === null || S.idx < 0) return;
+    const p = S.db.produk[S.idx] || [];
+    if (!S.shs.includes('produk_jual')) S.shs.push('produk_jual');
+    S.cur = 'produk_jual';
+    S.prefill = { idproduk: p[0], namaproduk: p[3], hargabeli: p[4], hargajual: p[5], qty: '1', diskon: '', catatan: '' };
+    S.prodIdx = S.idx; S.idx = -1; S.v = 'form'; render();
+  },
+  'beli-prod': () => {
+    if (S.idx === null || S.idx < 0) return;
+    const p = S.db.produk[S.idx] || [];
+    if (!S.shs.includes('produk_beli')) S.shs.push('produk_beli');
+    S.cur = 'produk_beli';
+    S.prefill = { idproduk: p[0], namaproduk: p[3], hargabeli: p[4], hargajual: p[5], qty: '1' };
+    S.prodIdx = S.idx; S.idx = -1; S.v = 'form'; render();
+  },
+  'ecer-prod': () => {
+    if (S.idx === null || S.idx < 0) return;
+    const p = S.db.produk[S.idx] || [];
+    if (!S.shs.includes('ecer')) S.shs.push('ecer');
+    S.cur = 'ecer';
+    S.prefill = { idproduk: p[0], namaproduk: p[3], hargabeli: p[4], hargajual: p[5], qty: '1', diskon: '', catatan: '' };
+    S.prodIdx = S.idx; S.idx = -1; S.v = 'form'; render();
+  },
+  'save-bulksheet': () => {
+    const val = dom.fb.querySelector('textarea')?.value || '';
+    const updatedShs = [];
+    val.split(/\r?\n/).filter(Boolean).forEach(l => {
+      const [rawN, ...rest] = l.split(':');
+      const n = rawN?.trim().toLowerCase();
+      if (!n) return;
+      if (!updatedShs.includes(n)) updatedShs.push(n);
+      S.db[n] = S.db[n] || [];
+      const colList = rest.join(':').split(',').map(x => x.trim().toLowerCase()).filter(Boolean);
+      S.cols[n] = colList.length ? colList : (S.cols[n] || ['id','col1']);
+      if (!S.vis[n] || !S.vis[n].length) S.vis[n] = S.cols[n].slice(0, 2);
+    });
+    if (!updatedShs.length) return msg('min 1 sheet');
+
+    S.shs.forEach(oldS => {
+      if (!updatedShs.includes(oldS)) {
+        delete S.db[oldS]; delete S.cols[oldS]; delete S.vis[oldS]; delete S.fvis?.[oldS];
+      }
+    });
+    S.shs = updatedShs;
+    if (!S.shs.includes(S.cur)) S.cur = S.shs[0];
+    persist(); S.v = 'list'; msg('ok'); render();
+  },
+  'save-row': () => {
+    const c = cols();
+    const oldRow = (S.idx >= 0 && S.db[S.cur][S.idx]) ? [...S.db[S.cur][S.idx]] : null;
+    const row = oldRow ? [...oldRow] : new Array(c.length).fill('');
+    while (row.length < c.length) row.push('');
+
+    dom.fb.querySelectorAll('[data-col]').forEach(inp => {
+      const ci = c.indexOf(inp.dataset.col);
+      if (ci !== -1) row[ci] = inp.value.trim();
+    });
+
+    const pType = parentOf(S.cur);
+    if (pType && S.idx === -1) {
+      const openTrx = getOpenTrx(pType);
+      if (!S.parent || S.parent.type !== pType) S.parent = openTrx || { type: pType, id: genId(), open: true };
+      const pRows = S.db[pType] || [], pCols = S.cols[pType] || [];
+      if (!pRows.some(r => String(r[0] ?? '').trim().toLowerCase() === String(S.parent.id).trim().toLowerCase())) {
+        const newP = new Array(pCols.length).fill('');
+        newP[0] = S.parent.id;
+        pCols.forEach((col, i) => {
+          if (/date|tanggal/i.test(col)) newP[i] = today();
+          else if (col === 'user') newP[i] = S.u || 'admin';
+          else if (col === 'status') newP[i] = 'draft';
+        });
+        (S.db[pType] ||= []).push(newP);
+      }
+      const fkI = c.indexOf(fkCol(S.cur));
+      if (fkI !== -1) row[fkI] = S.parent.id;
+    }
+
+    if (!row[0]) row[0] = genId();
+
+    if (isTrx()) {
+      const sI = c.indexOf('status'), bI = c.indexOf('bayar'), dI = c.indexOf('diskon'), kI = c.indexOf('kontak');
+      const pid = row[0];
+      const { raw, disc } = calcItems(S.cur, pid);
+      const dNota = dI !== -1 ? (parseFloat(row[dI]) || 0) : 0;
+      const net = Math.max(0, raw - disc - dNota);
+      const paid = bI !== -1 ? (parseFloat(row[bI]) || 0) : 0;
+      let cicil = 0;
+      if (S.cur === 'penjualan') {
+        const cCols = S.cols.cicil || [], cIdI = cCols.indexOf('idjual'), cJmlI = cCols.indexOf('jumlah');
+        (S.db.cicil || []).forEach(rowC => {
+          if (cIdI !== -1 && String(rowC[cIdI] ?? '').trim().toLowerCase() === String(pid).trim().toLowerCase()) {
+            cicil += (cJmlI !== -1 ? parseFloat(rowC[cJmlI]) || 0 : 0);
+          }
+        });
+      }
+      const totPaid = paid + cicil;
+      const st = sI !== -1 ? String(row[sI] || '').toLowerCase() : '';
+      const isPiutang = st === 'piutang' || (net > 0 && totPaid < net);
+      if (isPiutang && kI !== -1 && !row[kI]) {
+        return msg('piutang wajib kontak');
+      }
+    }
+
+    if (S.idx === -1) {
+      (S.db[S.cur] ||= []).push(row);
+      syncStockDelta(S.cur, null, row);
+    } else if (S.idx >= 0) {
+      S.db[S.cur][S.idx] = row;
+      syncStockDelta(S.cur, oldRow, row);
+    }
+
+    persist();
+    if (pType && S.parent?.id) syncTrx(pType, S.parent.id);
+    if (isTrx() && row[0]) syncTrx(S.cur, row[0]);
+    S.idx = null; S.v = 'list'; S.prefill = null; S.conf = null; S.prodIdx = null;
+    msg('ok'); render();
+  },
+  'del-row': () => {
+    if (S.conf !== 'del') { S.conf = 'del'; return render(); }
+    if (S.idx == null || S.idx < 0) return;
+    const pType = parentOf(S.cur);
+    const pid = pType ? (S.db[S.cur][S.idx]?.[cols().indexOf(fkCol(S.cur))] || S.parent?.id) : null;
+    const id = S.db[S.cur][S.idx]?.[0];
+    const removedRow = S.db[S.cur][S.idx];
+    S.db[S.cur].splice(S.idx, 1);
+    syncStockDelta(S.cur, removedRow, null);
+
+    if (isTrx() && id) {
+      const ch = childOf(S.cur);
+      const fkI = (S.cols[ch] || []).indexOf(fkCol(ch));
+      if (fkI !== -1) {
+        const removedChilds = (S.db[ch] || []).filter(r => String(r[fkI] ?? '').trim().toLowerCase() === String(id).trim().toLowerCase());
+        removedChilds.forEach(r => syncStockDelta(ch, r, null));
+        S.db[ch] = (S.db[ch] || []).filter(r => String(r[fkI] ?? '').trim().toLowerCase() !== String(id).trim().toLowerCase());
+      }
+    }
+    persist();
+    if (pType && pid) syncTrx(pType, pid);
+
+    S.idx = null; S.v = 'list'; S.conf = null;
+    msg('ok'); render();
+  },
+  'dup-row': () => {
+    if (S.idx == null || S.idx < 0) return;
+    const row = [...(S.db[S.cur][S.idx] || [])];
+    row[0] = genId();
+    S.db[S.cur].push(row);
+    persist();
+    S.idx = S.db[S.cur].length - 1;
+    msg('ok'); render();
+  },
+  'pay-pas': () => {
+    if (S.idx == null || S.idx < 0) return;
+    const row = S.db[S.cur][S.idx];
+    const bI = cols().indexOf('bayar');
+    if (bI === -1) return;
+    const { raw, disc } = calcItems(S.cur, row[0]);
+    const dNota = parseFloat(row[cols().indexOf('diskon')]) || 0;
+    const net = Math.max(0, raw - disc - dNota);
+    row[bI] = String(net);
+    const sI = cols().indexOf('status');
+    if (sI !== -1) row[sI] = net > 0 ? 'lunas' : 'draft';
+    persist();
+    msg('ok'); render();
+  },
+  revisi: () => {
+    if (S.idx == null || S.idx < 0) return;
+    const row = S.db[S.cur][S.idx];
+    const pid = row?.[0];
+    if (!pid) return;
+    S.parent = { type: S.cur, id: pid, open: true };
+    const sI = cols().indexOf('status');
+    if (sI !== -1) { row[sI] = 'revisi'; persist(); }
+    S.cur = childOf(S.cur); S.idx = null; S.v = 'list';
+    msg('revisi ' + pid); render();
+  },
+  cicil: () => {
+    if (S.idx == null || S.idx < 0) return;
+    const row = S.db[S.cur][S.idx];
+    const pid = row?.[0];
+    if (!pid) return;
+    const c = cols();
+    const kI = c.indexOf('kontak');
+    const kontak = kI !== -1 ? (row[kI] || '') : '';
+    if (!S.shs.includes('cicil')) S.shs.push('cicil');
+    S.cur = 'cicil';
+    S.prefill = { idjual: pid, kontak, date: today(), user: S.u || 'admin' };
+    S.idx = -1; S.v = 'form';
+    render();
+  },
+  'trx-rincian': () => {
+    if (S.idx == null || S.idx < 0) return;
+    const pid = S.db[S.cur][S.idx]?.[0];
+    if (!pid) return;
+    S.parent = { type: S.cur, id: pid, open: true };
+    S.cur = childOf(S.cur); S.idx = null; S.v = 'list';
+    render();
+  },
+  'show-nota': () => {
+    let pid = null;
+    if (S.cur === 'penjualan' && S.idx !== null && S.idx >= 0) pid = S.db.penjualan[S.idx]?.[0];
+    else if (S.parent && S.parent.type === 'penjualan') pid = S.parent.id;
+    else if (S.cur === 'penjualan' && S.db.penjualan?.length) pid = S.db.penjualan[0][0];
+    if (!pid) return msg('pilih trx');
+    S.receiptRaw = formatNota(pid);
+    S.v = 'nota'; render();
+  },
+  rawbt: () => {
+    if (!S.receiptRaw) return msg('empty');
+    try {
+      const uri = encodeURIComponent(S.receiptRaw);
+      window.location.href = /Android/i.test(navigator.userAgent)
+        ? `intent:#Intent;scheme=rawbt;package=ru.a402d.rawbtprinter;S.data=${uri};end;`
+        : `rawbt:data:text/plain;charset=utf-8,${uri}`;
+      msg('rawbt sent');
+    } catch {
+      msg('err');
+    }
+  },
+  print: () => window.print(),
+  'copy-nota': () => {
+    const el = document.createElement('textarea');
+    el.value = S.receiptRaw; document.body.appendChild(el);
+    el.select(); document.execCommand('copy'); el.remove();
+    msg('copied');
+  },
+  'save-store': () => {
+    dom.fb.querySelectorAll('[data-cfg]').forEach(i => {
+      if (i.dataset.cfg) S.store[i.dataset.cfg] = i.value.trim();
+    });
+    persist(); S.v = 'list'; msg('ok'); render();
+  },
+  'save-conn': () => {
+    const inps = dom.fb.querySelectorAll('textarea');
+    S.sid = inps[0]?.value.trim() || '';
+    S.appurl = inps[1]?.value.trim() || '';
+    S.d1url = inps[2]?.value.trim() || '';
+    persist(); S.v = 'list'; msg('ok'); render();
+  },
+  'save-schema': () => {
+    const cInp = dom.fb.querySelector('[data-f="cols"]');
+    const vInp = dom.fb.querySelector('[data-f="vis"]');
+    const fInp = dom.fb.querySelector('[data-f="form"]');
+    const newCols = (cInp?.value || '').split(',').map(x => x.trim().toLowerCase()).filter(Boolean);
+    if (newCols.length) {
+      S.cols[S.cur] = newCols;
+      const newVis = (vInp?.value || '').split(',').map(x => x.trim().toLowerCase()).filter(x => newCols.includes(x));
+      S.vis[S.cur] = newVis.length ? newVis : newCols.slice(0, 2);
+      const newFvis = (fInp?.value || '').split(',').map(x => x.trim().toLowerCase()).filter(x => newCols.includes(x));
+      S.fvis[S.cur] = newFvis.length ? newFvis : [...newCols];
+      (S.db[S.cur] || []).forEach(r => {
+        if (r.length > newCols.length) r.length = newCols.length;
+        while (r.length < newCols.length) r.push('');
+      });
+      persist();
+    }
+    S.v = 'list'; render();
+  },
+  'save-bulk': () => {
+    const cLen = cols().length;
+    dom.ls.querySelectorAll('[data-idx]').forEach(div => {
+      const idx = parseInt(div.dataset.idx, 10);
+      if (isNaN(idx) || !S.db[S.cur][idx]) return;
+      const parts = div.textContent.split('|').map(s => s.trim());
+      while (parts.length < cLen) parts.push('');
+      S.db[S.cur][idx] = parts.slice(0, cLen);
+    });
+    persist(); S.v = 'list'; msg('ok'); render();
+  },
+  backup: () => {
+    persist();
+    const seed = 'const HARD = ' + JSON.stringify({ store: S.store, shs: S.shs, cols: S.cols, vis: S.vis, db: S.db }) + ';';
+    const html = '<!doctype html>\n' + document.documentElement.outerHTML.replace(/\/\*SEED\*\/[\s\S]*?\/\*ENDSEED\*\//, () => `/*SEED*/\n${seed}\n/*ENDSEED*/`);
+    dl(html, `apex_${Date.now()}.html`, 'text/html;charset=utf-8');
+  },
+  grid: () => { S.grid = !S.grid; render(); },
+  dir: () => { S.dir = -S.dir; S.page = 1; render(); },
+  more: () => { S.page++; render(); },
+  logout: () => { S.u = ''; S.readyOnly = false; persist(); msg('logout'); render(); },
+  cam: () => dom.fCam.click(),
+  pic: () => dom.fImg.click(),
+  navigasi: () => {
+    const targetInp = Array.from(dom.fb.querySelectorAll('[data-col]')).find(i => /alamat|lokasi/i.test(i.dataset.col));
+    const loc = targetInp?.value?.trim() || '';
+    if (!loc) return msg('koordinat kosong');
+    if (/Android|iPhone|iPad/i.test(navigator.userAgent)) {
+      window.location.href = 'geo:' + loc + '?q=' + encodeURIComponent(loc);
+    } else {
+      window.open('https://www.google.com/maps/dir/?api=1&destination=' + encodeURIComponent(loc), '_blank');
+    }
+  },
+  gimg: () => {
+    const q = dom.fb.querySelector('[data-col="namaproduk"]')?.value ||
+              dom.fb.querySelector('[data-col="nama"]')?.value ||
+              dom.q.value || '';
+    if (!q) return msg('nama kosong');
+    window.open('https://www.google.com/search?tbm=isch&q=' + encodeURIComponent(q), '_blank');
+  },
+  gps: () => {
+    const targetInp = Array.from(dom.fb.querySelectorAll('[data-col]')).find(i => /alamat|lokasi/i.test(i.dataset.col));
+    if (!targetInp) return msg('kolom lokasi/alamat tidak ada');
+    if (navigator.geolocation) {
+      msg('gps...');
+      navigator.geolocation.getCurrentPosition(
+        p => {
+          const loc = p.coords.latitude.toFixed(6) + ',' + p.coords.longitude.toFixed(6);
+          targetInp.value = loc;
+          msg(loc);
+        },
+        () => msg('gps err'),
+        { enableHighAccuracy: true, timeout: 5000 }
+      );
+    } else {
+      msg('no gps');
+    }
+  },
+  'sh-sel': el => { S.cur = el.value; S.idx = null; S.v = 'list'; S.page = 1; S.parent = null; S.readyOnly = false; render(); },
+  'st-sel': el => { S.sort = el.value === 'near' ? 'near' : (parseInt(el.value, 10) || 0); S.page = 1; render(); },
+  'act-sel': el => {
+    const a = el.value; el.value = ''; if (!a) return;
+    if (a === 'edit') { S.v = S.v === 'edit' ? 'list' : 'edit'; return render(); }
+    if (a === 'bulksheet') { S.v = 'bulksheet'; return render(); }
+    if (a === 'schema') { S.v = 'schema'; return render(); }
+    if (a === 'imp') return dom.f.click();
+    if (a === 'tsv') {
+      const out = [cols().join('\t'), ...(S.db[S.cur] || []).map(r => r.join('\t'))].join('\r\n');
+      return dl(out, `${S.cur}_${Date.now()}.tsv`, 'text/tab-separated-values');
+    }
+    if (a === 'clear') {
+      if (S.conf !== 'clear') {
+        S.conf = 'clear';
+        msg(`clear ${S.cur}? pilih lagi`);
+        return;
+      }
+      S.db[S.cur] = [];
+      S.conf = null;
+      persist();
+      msg('ok');
+      render();
+    }
+  },
+  q: el => {
+    if (document.body.dataset.m === 'menu') {
+      const qm = el.value.trim().toLowerCase();
+      Array.from(dom.sb.children).forEach(b => b.hidden = Boolean(qm && !b.textContent.toLowerCase().includes(qm)));
+      return;
+    }
+    S.page = 1; render();
+  },
+  f: el => {
+    const file = el.files[0]; if (!file) return; el.value = '';
+    const rd = new FileReader();
+    rd.onload = e => {
+      const lines = (e.target.result || '').split(/\r?\n/).filter(Boolean);
+      if (!lines.length) return msg('empty');
+      const c = cols(), res = [];
+      lines.slice(1).forEach(l => {
+        const row = l.split('\t');
+        while (row.length < c.length) row.push('');
+        res.push(row.slice(0, c.length));
+      });
+      S.db[S.cur] = res; persist(); msg('ok'); render();
+    };
+    rd.readAsText(file);
+  }
+};
+
+document.addEventListener('click', e => {
+  const locBtn = e.target.closest('#box-map [data-loc]');
+  if (locBtn && !e.target.closest('[data-a="open-map-row"]')) {
+    S.mapLoc = locBtn.dataset.loc;
+    return render();
+  }
+  const b = e.target.closest('[data-a]');
+  if (b) {
+    if (b.dataset.a !== 'del-row' && b.dataset.a !== 'clear-items' && b.dataset.a !== 'act-sel' && S.conf) {
+      S.conf = null;
+      msg('');
+    }
+    return actions[b.dataset.a]?.(b, e);
+  }
+  const r = e.target.closest('#list>[data-idx]');
+  if (r && S.v === 'list' && S.idx === null) {
+    const idx = parseInt(r.dataset.idx, 10);
+    if (S.cur === 'produk') {
+      const p = S.db.produk[idx] || [];
+      const isBeli = S.parent?.type === 'pembelian';
+      const pType = isBeli ? 'pembelian' : 'penjualan';
+      const openTrx = getOpenTrx(pType);
+      S.parent = openTrx || { type: pType, id: genId(), open: true };
+      S.cur = isBeli ? 'produk_beli' : 'produk_jual';
+      S.prefill = { idproduk: p[0], namaproduk: p[3], hargabeli: p[4], hargajual: p[5], qty: '1', diskon: '', catatan: '' };
+      S.prodIdx = idx; S.idx = -1; S.v = 'form';
+      return render();
+    }
+    if (isTrx()) {
+      const pid = S.db[S.cur]?.[idx]?.[0];
+      if (pid) S.parent = { type: S.cur, id: pid };
+    }
+    S.idx = idx; S.v = 'form'; render();
+  }
+});
+
+document.addEventListener('input', e => {
+  if (e.target.id === 'map-lim') {
+    S.mapLimit = e.target.value;
+    persist();
+    render();
+    const limInp = document.getElementById('map-lim');
+    if (limInp) limInp.focus();
+    return;
+  }
+  if (e.target.dataset.df) {
+    const k = e.target.dataset.df;
+    S.df[k] = e.target.value;
+    persist();
+    const pos = e.target.selectionStart;
+    render();
+    const nextInp = dom.db.querySelector(`[data-df="${k}"]`);
+    if (nextInp) {
+      nextInp.focus();
+      if (typeof pos === 'number') try { nextInp.setSelectionRange(pos, pos); } catch {}
+    }
+    return;
+  }
+  if (e.target.dataset.a === 'q') actions.q(e.target);
+  if ((e.target.dataset.col === 'idproduk' || e.target.dataset.col === 'namaproduk') && S.cur !== 'produk') {
+    const query = e.target.value.trim().toLowerCase();
+    if (!query) return;
+    const pCols = S.cols.produk || [];
+    const pIdI = pCols.indexOf('idproduk'), pNmI = pCols.indexOf('namaproduk');
+    const found = (S.db.produk || []).find(r => {
+      const idMatch = String((pIdI !== -1 ? r[pIdI] : r[0]) ?? '').trim().toLowerCase() === query;
+      const nmMatch = pNmI !== -1 && String(r[pNmI] ?? '').trim().toLowerCase() === query;
+      return idMatch || nmMatch;
+    });
+    if (found) {
+      dom.fb.querySelectorAll('[data-col]').forEach(inp => {
+        const fi = pCols.indexOf(inp.dataset.col);
+        if (fi !== -1) inp.value = found[fi];
+      });
+    }
+  }
+});
+
+document.addEventListener('change', e => {
+  if (e.target.id === 'map-sel') {
+    S.mapLoc = e.target.value;
+    return render();
+  }
+  const a = e.target.dataset.a;
+  if (a && actions[a]) actions[a](e.target);
+  if (e.target === dom.fCam || e.target === dom.fImg) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const photoInp = Array.from(dom.fb.querySelectorAll('[data-col]')).find(i => /foto/i.test(i.dataset.col));
+    if (!photoInp) return msg('kolom foto tidak ada');
+    const rd = new FileReader();
+    msg('memuat foto...');
+    rd.onload = ev => {
+      photoInp.value = ev.target.result || '';
+      msg('foto ok');
+    };
+    rd.onerror = () => msg('gagal baca file');
+    rd.readAsDataURL(file);
+    e.target.value = '';
+  }
+});
+
+document.addEventListener('keydown', e => {
+  const t = e.target;
+  if (e.key === 'Enter') {
+    if (t.tagName !== 'TEXTAREA' && dom.fb.contains(t)) {
+      e.preventDefault();
+      if (!S.u) actions.login();
+      else if (S.v === 'bulksheet') actions['save-bulksheet']();
+      else if (S.v === 'toko') actions['save-store']();
+      else if (S.v === 'conn') actions['save-conn']();
+      else if (S.v === 'schema') actions['save-schema']();
+      else actions['save-row']();
+    }
+  } else if (e.key === 'Escape') {
+    actions.cancel();
+  }
+});
+
+try {
+  const d = JSON.parse(localStorage.getItem(STORE_KEY) || 'null');
+  if (d && typeof d === 'object') {
+    if (d.store) S.store = Object.assign(S.store, d.store);
+    if (Array.isArray(d.shs)) S.shs = d.shs;
+    if (d.cols) S.cols = d.cols;
+    if (d.vis) S.vis = d.vis;
+    if (d.fvis) S.fvis = d.fvis;
+    if (d.db) S.db = d.db;
+    if (d.parent) S.parent = d.parent;
+    if (d.cur && S.shs.includes(d.cur)) S.cur = d.cur;
+    if (typeof d.u === 'string') S.u = d.u;
+    if (typeof d.sid === 'string') S.sid = d.sid;
+    if (typeof d.appurl === 'string') S.appurl = d.appurl;
+    if (typeof d.d1url === 'string') S.d1url = d.d1url;
+    if (d.df && typeof d.df === 'object') S.df = Object.assign(S.df, d.df);
+    if (d.mapLimit) S.mapLimit = d.mapLimit;
+    S.grid = Boolean(d.grid);
+  }
+} catch {}
+
+render();
+</script>
+</body>
+</html>
